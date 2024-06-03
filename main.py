@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 import random
 import string
 
@@ -63,8 +64,11 @@ class PasswordGeneratorGUI:
         self.custom_charset_entry.pack()
         self.custom_charset_entry.configure(state='disabled')
 
-        self.generate_button = tk.Button(master, text="Generate Passwords", command=self.show_passwords)
-        self.generate_button.pack()
+        self.save_button = tk.Button(master, text="Save to File", command=self.save_to_file, state='disabled')
+        self.save_button.pack()
+
+        self.show_button = tk.Button(master, text="Show Passwords", command=self.show_passwords)
+        self.show_button.pack()
 
         self.passwords_text = tk.Text(master, height=10, width=50)
         self.passwords_text.pack()
@@ -75,6 +79,14 @@ class PasswordGeneratorGUI:
         else:
             self.custom_charset_entry.configure(state='disabled')
 
+    def save_to_file(self):
+        file_name = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt")])
+        if not file_name:
+            return  # User canceled operation
+
+        with open(file_name, 'w') as file:
+            file.write(self.passwords_text.get(1.0, tk.END))
+
     def show_passwords(self):
         self.passwords_text.delete(1.0, tk.END)
         try:
@@ -83,6 +95,7 @@ class PasswordGeneratorGUI:
                 raise ValueError
         except ValueError:
             self.passwords_text.insert(tk.END, "Please enter a valid number between 1 and 10.\n")
+            self.save_button.config(state='disabled')
             return
 
         try:
@@ -91,6 +104,7 @@ class PasswordGeneratorGUI:
                 raise ValueError
         except ValueError:
             self.passwords_text.insert(tk.END, "Please enter a valid password length of at least 4.\n")
+            self.save_button.config(state='disabled')
             return
 
         security_level = self.security_level.get()
@@ -98,6 +112,7 @@ class PasswordGeneratorGUI:
 
         if security_level == 'custom' and not custom_charset:
             self.passwords_text.insert(tk.END, "Please enter a custom character set.\n")
+            self.save_button.config(state='disabled')
             return
 
         for _ in range(num_passwords):
@@ -107,6 +122,8 @@ class PasswordGeneratorGUI:
             except ValueError as e:
                 self.passwords_text.insert(tk.END, f"Error: {str(e)}\n")
                 break
+
+        self.save_button.config(state='normal')
 
 def main():
     root = tk.Tk()
